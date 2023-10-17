@@ -144,6 +144,7 @@ const forgotPassword = async () => {
     console.log("Request password reset");
 
     const user = await getInput("Enter your username or email: ");
+    rl.close();
 
     try {
         const response = await requestPasswordReset(user);
@@ -163,8 +164,10 @@ const forgotPassword = async () => {
 const resetPassword = async () => {
     console.log("Reset your password");
     const user = await getInput("Enter your username or email: ");
-    const password = getPassword('Enter your new password: ');
     const code = await getInput("Enter your confirmation code: ");
+    rl.close();
+
+    const password = getPassword('Enter your new password: ');
 
     try {
         const status = await updatePassword(user, password, code);
@@ -183,18 +186,18 @@ const resetPassword = async () => {
 const main = async () => {
     const program = new Command();
     program
-        .name("AWS Cognito Authenticator")
-        .description("CLI to authenticate with AWS Cognito ")
+        .name("AWS Cognito Authenticator.")
+        .description("CLI to authenticate with AWS Cognito.")
         .version("0.1.0");
 
     program
         .command("login")
-        .description("Login with AWS Cognito. Requires username or email and password")
+        .description("Login with AWS Cognito and get an access token.")
         .action(userLogin);
 
     program
         .command("forgot-password")
-        .description("Request a password reset in case you forgot your password")
+        .description("Request a password reset in case you forgot your password.")
         .action(forgotPassword);
 
     program
