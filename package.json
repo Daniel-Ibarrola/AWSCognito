@@ -2,9 +2,10 @@
   "name": "cognito",
   "version": "1.0.0",
   "description": "",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "node ./dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +13,7 @@
   "dependencies": {
     "@types/node": "^20.8.6",
     "axios": "^1.5.1",
+    "commander": "^11.1.0",
     "dotenv": "^16.3.1",
     "readline-sync": "^1.4.10"
   }

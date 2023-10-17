@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Command } from "commander";
 import * as dotenv from "dotenv";
 import * as readline from "readline";
 import * as readlineSync from 'readline-sync';
@@ -7,6 +8,7 @@ dotenv.config();
 
 const cognitoURL = `https://cognito-idp.${process.env.REGION}.amazonaws.com/`;
 const clientId = process.env.CLIENT_ID;
+
 
 const authenticate = async (user: string, password: string) => {
     const data = {
@@ -64,7 +66,7 @@ const requestPasswordReset = async (user: string) => {
 };
 
 
-const resetPassword = async (user: string, newPassword: string, code: string) => {
+const updatePassword = async (user: string, newPassword: string, code: string) => {
     const data = {
         ClientId: clientId,
         ConfirmationCode: code,
@@ -78,7 +80,7 @@ const resetPassword = async (user: string, newPassword: string, code: string) =>
     };
 
     const response = await axios.post(cognitoURL, data, { headers })
-    return response.data;
+    return response.status;
 }
 
 
@@ -101,10 +103,10 @@ const getPassword = (prompt: string): string => {
     });
 }
 
-const handleResponse = async () => {
+const userLogin = async () => {
 
     console.log("Login to AWS Cognito");
-    const user = await getInput("Enter your email: ");
+    const user = await getInput("Enter your username or email: ");
     const password = getPassword('Enter your password: ');
     rl.close();
 
@@ -138,6 +140,72 @@ const handleResponse = async () => {
     }
 };
 
+const forgotPassword = async () => {
+    console.log("Request password reset");
+
+    const user = await getInput("Enter your username or email: ");
+
+    try {
+        const response = await requestPasswordReset(user);
+        if (response.CodeDeliveryDetails) {
+            console.log("A confirmation code has been sent to your email.");
+        } else {
+            console.log("Failed to send confirmation code");
+        }
+    } catch (error) {
+        console.log("Error:", error.message);
+        console.log(error);
+    }
+
+};
+
+
+const resetPassword = async () => {
+    console.log("Reset your password");
+    const user = await getInput("Enter your username or email: ");
+    const password = getPassword('Enter your new password: ');
+    const code = await getInput("Enter your confirmation code: ");
+
+    try {
+        const status = await updatePassword(user, password, code);
+        if (status === 200){
+            console.log("Password updated successfully");
+        } else {
+            console.log("Failed to update password");
+        }
+    } catch (error) {
+        console.log("Error:", error.message);
+        console.log(error);
+    }
+};
+
+
+const main = async () => {
+    const program = new Command();
+    program
+        .name("AWS Cognito Authenticator")
+        .description("CLI to authenticate with AWS Cognito ")
+        .version("0.1.0");
+
+    program
+        .command("login")
+        .description("Login with AWS Cognito. Requires username or email and password")
+        .action(userLogin);
+
+    program
+        .command("forgot-password")
+        .description("Request a password reset in case you forgot your password")
+        .action(forgotPassword);
+
+    program
+        .command("reset-password")
+        .description("Reset your password.")
+        .action(resetPassword);
+
+    await program.parseAsync(process.argv);
+}
+
+
 (async () => {
-    await handleResponse();
+    await main();
 })();
